@@ -1,13 +1,29 @@
 package projectCG;
 
-import javax.swing.*;
-import javax.swing.Timer;
-
-import java.awt.*;
-import java.awt.event.*;
-import java.awt.geom.*;
-import java.util.*;
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.GradientPaint;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Point;
+import java.awt.Polygon;
+import java.awt.RadialGradientPaint;
+import java.awt.RenderingHints;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.geom.AffineTransform;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
+
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
+import javax.swing.Timer;
 
 public class LofiTaoBinVendingMachine extends JPanel implements ActionListener, MouseListener {
     private Timer animationTimer;
@@ -19,6 +35,22 @@ public class LofiTaoBinVendingMachine extends JPanel implements ActionListener, 
     private Random random;
     private Point lastClickedItem = null;
     private int floorY; // Ground level for physics
+
+    private static JFrame frame;
+
+    public static void setFrame(JFrame f) {
+        frame = f;
+    }
+
+    public static JFrame getFrame() {
+        return frame;
+    }
+
+    public void startAnimation() {
+        if (timer != null && !timer.isRunning()) {
+            timer.start();
+        }
+    }
 
     // Animation states
     private boolean machineDropped = false;

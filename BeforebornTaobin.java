@@ -1,21 +1,33 @@
 // BeforebornTaobin.java - Fixed version
 package projectCG;
 
-import java.awt.*;
-import javax.swing.*;
-import javax.swing.Timer;
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.GradientPaint;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Ellipse2D;
+import java.awt.geom.QuadCurve2D;
 import java.awt.image.BufferedImage;
-import java.awt.geom.*;
-import java.util.*;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.concurrent.CopyOnWriteArrayList;
+
+import javax.swing.JFrame;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
+import javax.swing.Timer;
 
 class BeforebornTaobin extends JPanel implements ActionListener {
     private Timer timer;
     private static JFrame frame;
-    
+
     // Animation variables with floating point precision
     private double carX = -150.0;
     private double carSpeed = 0.0;
@@ -87,14 +99,18 @@ class BeforebornTaobin extends JPanel implements ActionListener {
 
     // Smooth interpolation helpers
     private double easeInOutQuad(double t) {
-        if (t < 0) t = 0;
-        if (t > 1) t = 1;
+        if (t < 0)
+            t = 0;
+        if (t > 1)
+            t = 1;
         return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
     }
-    
+
     private double lerp(double a, double b, double t) {
-        if (t < 0) t = 0;
-        if (t > 1) t = 1;
+        if (t < 0)
+            t = 0;
+        if (t > 1)
+            t = 1;
         return a + t * (b - a);
     }
 
@@ -171,12 +187,13 @@ class BeforebornTaobin extends JPanel implements ActionListener {
                 if (backBufferGraphics != null) {
                     backBufferGraphics.dispose();
                 }
-                
+
                 backBuffer = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_ARGB);
                 backBufferGraphics = backBuffer.createGraphics();
                 backBufferGraphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 backBufferGraphics.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
-                backBufferGraphics.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+                backBufferGraphics.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
+                        RenderingHints.VALUE_INTERPOLATION_BILINEAR);
             }
         } catch (Exception e) {
             System.err.println("Error creating back buffer: " + e.getMessage());
@@ -185,7 +202,8 @@ class BeforebornTaobin extends JPanel implements ActionListener {
 
     // Helper methods with null checks
     public static void drawCurve(Graphics2D g2d, double x1, double y1, double cx, double cy, double x2, double y2) {
-        if (g2d == null) return;
+        if (g2d == null)
+            return;
         try {
             QuadCurve2D curve = new QuadCurve2D.Double(x1, y1, cx, cy, x2, y2);
             g2d.draw(curve);
@@ -195,7 +213,8 @@ class BeforebornTaobin extends JPanel implements ActionListener {
     }
 
     public static void drawCircle(Graphics2D g2d, double centerX, double centerY, double radius) {
-        if (g2d == null || radius <= 0) return;
+        if (g2d == null || radius <= 0)
+            return;
         try {
             double diameter = radius * 2;
             Ellipse2D circle = new Ellipse2D.Double(centerX - radius, centerY - radius, diameter, diameter);
@@ -206,7 +225,8 @@ class BeforebornTaobin extends JPanel implements ActionListener {
     }
 
     public static void fillCircle(Graphics2D g2d, double centerX, double centerY, double radius, Color color) {
-        if (g2d == null || radius <= 0 || color == null) return;
+        if (g2d == null || radius <= 0 || color == null)
+            return;
         try {
             double diameter = radius * 2;
             Ellipse2D circle = new Ellipse2D.Double(centerX - radius, centerY - radius, diameter, diameter);
@@ -264,8 +284,9 @@ class BeforebornTaobin extends JPanel implements ActionListener {
 
     @Override
     protected void paintComponent(Graphics g) {
-        if (g == null) return;
-        
+        if (g == null)
+            return;
+
         try {
             super.paintComponent(g);
 
@@ -274,7 +295,8 @@ class BeforebornTaobin extends JPanel implements ActionListener {
                 createBackBuffer();
             }
 
-            if (backBufferGraphics == null) return;
+            if (backBufferGraphics == null)
+                return;
 
             // Clear back buffer
             backBufferGraphics.setColor(getBackground());
@@ -323,22 +345,22 @@ class BeforebornTaobin extends JPanel implements ActionListener {
         try {
             if (frame != null) {
                 System.out.println("Starting transition to VendingFallFormSky");
-                
+
                 // Stop current animation first
                 stopAnimation();
-                
+
                 // Create next scene and set frame reference
                 VendingFallFromSky nextScene = new VendingFallFromSky();
                 VendingFallFromSky.setFrame(frame); // Set frame reference for next scene
-                
+
                 // Change content pane
                 frame.setContentPane(nextScene);
                 frame.revalidate();
                 frame.repaint();
-                
+
                 // Start next scene animation
                 nextScene.startAnimation();
-                
+
                 System.out.println("Transition complete!");
             } else {
                 System.err.println("Frame reference is null - cannot transition");
@@ -399,10 +421,9 @@ class BeforebornTaobin extends JPanel implements ActionListener {
                 particle.vx = (random.nextDouble() - 0.5) * 15;
                 particle.vy = (random.nextDouble() - 0.5) * 12 - 5;
                 particle.color = new Color(
-                    Math.min(255, Math.max(0, 180 + random.nextInt(75))), 
-                    Math.min(255, Math.max(0, random.nextInt(120))), 
-                    Math.min(255, Math.max(0, random.nextInt(60)))
-                );
+                        Math.min(255, Math.max(0, 180 + random.nextInt(75))),
+                        Math.min(255, Math.max(0, random.nextInt(120))),
+                        Math.min(255, Math.max(0, random.nextInt(60))));
                 particle.life = 1.0 + random.nextDouble();
                 particle.maxLife = particle.life;
                 particle.rotation = random.nextDouble() * Math.PI * 2;
@@ -446,8 +467,8 @@ class BeforebornTaobin extends JPanel implements ActionListener {
     private void createPortalParticles() {
         try {
             // Create portal particles with limit
-            if (portalSize > 50 && random.nextDouble() < 0.3 * deltaTime * 60.0 
-                && portalParticles.size() < MAX_PARTICLES) {
+            if (portalSize > 50 && random.nextDouble() < 0.3 * deltaTime * 60.0
+                    && portalParticles.size() < MAX_PARTICLES) {
                 PortalParticle particle = new PortalParticle();
                 double angle = random.nextDouble() * 2 * Math.PI;
                 double distance = random.nextDouble() * portalSize * 0.8;
@@ -456,10 +477,9 @@ class BeforebornTaobin extends JPanel implements ActionListener {
                 particle.vx = -Math.cos(angle) * (2 + random.nextDouble() * 3);
                 particle.vy = -Math.sin(angle) * (2 + random.nextDouble() * 3);
                 particle.color = new Color(
-                    Math.min(255, Math.max(0, 80 + random.nextInt(120))), 
-                    Math.min(255, Math.max(0, 30 + random.nextInt(170))),
-                    Math.min(255, Math.max(0, 180 + random.nextInt(75)))
-                );
+                        Math.min(255, Math.max(0, 80 + random.nextInt(120))),
+                        Math.min(255, Math.max(0, 30 + random.nextInt(170))),
+                        Math.min(255, Math.max(0, 180 + random.nextInt(75))));
                 particle.alpha = 1.0;
                 particle.life = 1.0 + random.nextDouble() * 2.0;
                 portalParticles.add(particle);
@@ -518,8 +538,9 @@ class BeforebornTaobin extends JPanel implements ActionListener {
     }
 
     private void drawFlashEffect(Graphics2D g2d) {
-        if (g2d == null) return;
-        
+        if (g2d == null)
+            return;
+
         try {
             if (flashTimer < 30) {
                 double progress = Math.max(0, Math.min(1, flashTimer / 30.0));
@@ -548,8 +569,9 @@ class BeforebornTaobin extends JPanel implements ActionListener {
     // ... (adding all other drawing methods from original)
 
     public void drawAnimatedBackground(Graphics2D g2d) {
-        if (g2d == null) return;
-        
+        if (g2d == null)
+            return;
+
         try {
             // Smooth time-based animation
             time += deltaTime * 2.0;
@@ -609,8 +631,9 @@ class BeforebornTaobin extends JPanel implements ActionListener {
     }
 
     public void drawAnimatedCloud(Graphics2D g2d, double x, double y, double scale, double animTime) {
-        if (g2d == null) return;
-        
+        if (g2d == null)
+            return;
+
         try {
             double bobY = y + Math.sin(animTime * 0.5 + x * 0.01) * 2 * scale;
 
@@ -627,8 +650,9 @@ class BeforebornTaobin extends JPanel implements ActionListener {
     }
 
     private void drawCloudShape(Graphics2D g2d, double x, double y, double scale) {
-        if (g2d == null || scale <= 0) return;
-        
+        if (g2d == null || scale <= 0)
+            return;
+
         try {
             int baseRadius = (int) Math.max(1, 25 * scale);
             Color currentColor = g2d.getColor();
@@ -643,8 +667,9 @@ class BeforebornTaobin extends JPanel implements ActionListener {
     }
 
     private void drawAnimatedSun(Graphics2D g2d, int centerX, int centerY, int radius) {
-        if (g2d == null || radius <= 0) return;
-        
+        if (g2d == null || radius <= 0)
+            return;
+
         try {
             // Sun rays
             int rayCount = 24;
@@ -664,10 +689,10 @@ class BeforebornTaobin extends JPanel implements ActionListener {
                     int y2 = (int) (centerY + Math.sin(angle) * rayLength);
 
                     double intensity = 0.7 + 0.3 * Math.sin(time * 2.0 + i * 0.5);
-                    Color rayColor = new Color(255, 
-                        Math.min(255, Math.max(0, (int) (215 * intensity))), 
-                        Math.min(255, Math.max(0, (int) (50 * intensity))), 
-                        Math.min(255, Math.max(0, (int) (200 * intensity))));
+                    Color rayColor = new Color(255,
+                            Math.min(255, Math.max(0, (int) (215 * intensity))),
+                            Math.min(255, Math.max(0, (int) (50 * intensity))),
+                            Math.min(255, Math.max(0, (int) (200 * intensity))));
                     g2d.setColor(rayColor);
                     g2d.drawLine(x1, y1, x2, y2);
                 } catch (Exception e) {
@@ -697,7 +722,8 @@ class BeforebornTaobin extends JPanel implements ActionListener {
 
             // Eyes
             g2d.fillOval((int) (centerX - eyeOffset), (int) (centerY - eyeSize), (int) eyeSize, (int) eyeSize);
-            g2d.fillOval((int) (centerX + eyeOffset - eyeSize), (int) (centerY - eyeSize), (int) eyeSize, (int) eyeSize);
+            g2d.fillOval((int) (centerX + eyeOffset - eyeSize), (int) (centerY - eyeSize), (int) eyeSize,
+                    (int) eyeSize);
 
             // Smile
             g2d.setStroke(new BasicStroke(2f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
@@ -711,18 +737,21 @@ class BeforebornTaobin extends JPanel implements ActionListener {
     }
 
     public void drawRoad(Graphics2D g2d) {
-        if (g2d == null) return;
-        
+        if (g2d == null)
+            return;
+
         try {
             // Road with gradient
-            GradientPaint roadGradient = new GradientPaint(0, roadY, new Color(80, 80, 80), 0, roadY + 200, new Color(45, 45, 45));
+            GradientPaint roadGradient = new GradientPaint(0, roadY, new Color(80, 80, 80), 0, roadY + 200,
+                    new Color(45, 45, 45));
             g2d.setPaint(roadGradient);
             g2d.fillRect(0, roadY, getWidth(), 200);
 
             // Road markings
             g2d.setColor(new Color(255, 255, 255, 200));
             double dashOffset = crashed ? 0 : (sceneTimer * deltaTime * 100.0) % 30;
-            g2d.setStroke(new BasicStroke(4, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND, 0, new float[] { 20, 10 }, (float) dashOffset));
+            g2d.setStroke(new BasicStroke(4, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND, 0, new float[] { 20, 10 },
+                    (float) dashOffset));
             g2d.drawLine(0, roadY + 100, getWidth(), roadY + 100);
 
             // Road edges
@@ -736,8 +765,9 @@ class BeforebornTaobin extends JPanel implements ActionListener {
     }
 
     public void drawVendingMachine(Graphics2D g2d) {
-        if (g2d == null) return;
-        
+        if (g2d == null)
+            return;
+
         try {
             double shakeX = vendingMachineX + machineShakeX;
             double shakeY = vendingMachineY + machineShakeY;
@@ -781,8 +811,9 @@ class BeforebornTaobin extends JPanel implements ActionListener {
     }
 
     public void drawCar(Graphics2D g2d) {
-        if (g2d == null) return;
-        
+        if (g2d == null)
+            return;
+
         try {
             g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
             g2d.setStroke(new BasicStroke(2));
@@ -834,8 +865,9 @@ class BeforebornTaobin extends JPanel implements ActionListener {
     }
 
     private void drawWheel(Graphics2D g2d, int cx, int cy, int r, boolean working) {
-        if (g2d == null || r <= 0) return;
-        
+        if (g2d == null || r <= 0)
+            return;
+
         try {
             // Tire
             g2d.setColor(working ? new Color(60, 60, 60) : new Color(30, 30, 30));
@@ -865,8 +897,9 @@ class BeforebornTaobin extends JPanel implements ActionListener {
     }
 
     public void drawPortal(Graphics2D g2d) {
-        if (g2d == null) return;
-        
+        if (g2d == null)
+            return;
+
         try {
             double portalCenterX = vendingMachineX + 40;
             double portalCenterY = vendingMachineY + 75;
@@ -921,16 +954,17 @@ class BeforebornTaobin extends JPanel implements ActionListener {
     }
 
     public void drawPortalParticles(Graphics2D g2d) {
-        if (g2d == null) return;
-        
+        if (g2d == null)
+            return;
+
         try {
             for (PortalParticle particle : new ArrayList<>(portalParticles)) {
                 if (particle != null && particle.alpha > 0) {
                     g2d.setColor(new Color(
-                        Math.min(255, Math.max(0, particle.color.getRed())), 
-                        Math.min(255, Math.max(0, particle.color.getGreen())), 
-                        Math.min(255, Math.max(0, particle.color.getBlue())),
-                        Math.min(255, Math.max(0, (int) (255 * particle.alpha)))));
+                            Math.min(255, Math.max(0, particle.color.getRed())),
+                            Math.min(255, Math.max(0, particle.color.getGreen())),
+                            Math.min(255, Math.max(0, particle.color.getBlue())),
+                            Math.min(255, Math.max(0, (int) (255 * particle.alpha)))));
                     g2d.fillOval((int) (particle.x - particle.size), (int) (particle.y - particle.size),
                             (int) Math.max(1, particle.size * 2), (int) Math.max(1, particle.size * 2));
                 }
@@ -941,17 +975,18 @@ class BeforebornTaobin extends JPanel implements ActionListener {
     }
 
     public void drawCrashParticles(Graphics2D g2d) {
-        if (g2d == null) return;
-        
+        if (g2d == null)
+            return;
+
         try {
             for (CrashParticle particle : new ArrayList<>(crashParticles)) {
                 if (particle != null && particle.life > 0) {
                     double alpha = Math.max(0, particle.life / particle.maxLife);
                     g2d.setColor(new Color(
-                        Math.min(255, Math.max(0, particle.color.getRed())), 
-                        Math.min(255, Math.max(0, particle.color.getGreen())), 
-                        Math.min(255, Math.max(0, particle.color.getBlue())),
-                        Math.min(255, Math.max(0, (int) (255 * alpha)))));
+                            Math.min(255, Math.max(0, particle.color.getRed())),
+                            Math.min(255, Math.max(0, particle.color.getGreen())),
+                            Math.min(255, Math.max(0, particle.color.getBlue())),
+                            Math.min(255, Math.max(0, (int) (255 * alpha)))));
 
                     // Rotated square particle
                     AffineTransform oldTransform = g2d.getTransform();
@@ -975,9 +1010,9 @@ class BeforebornTaobin extends JPanel implements ActionListener {
                 frame.setTitle("立方体の自動販売機 - Lofi Cubic Vending Machine");
                 frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
                 frame.setSize(600, 600);
-                
+
                 BeforebornTaobin scene1 = new BeforebornTaobin(frame);
-                frame.setContentPane(scene1); 
+                frame.setContentPane(scene1);
                 frame.setLocationRelativeTo(null);
                 frame.setVisible(true);
                 frame.setResizable(false);

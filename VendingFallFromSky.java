@@ -1,22 +1,39 @@
 // VendingFallFromSky.java - Fixed version with auto transition
 package projectCG;
 
-import javax.swing.*;
-import javax.swing.Timer;
-import java.awt.*;
-import java.awt.event.*;
-import java.awt.geom.*;
+import java.awt.AlphaComposite;
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Composite;
+import java.awt.Dimension;
+import java.awt.GradientPaint;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Polygon;
+import java.awt.RadialGradientPaint;
+import java.awt.RenderingHints;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Ellipse2D;
+import java.awt.geom.Rectangle2D;
+import java.awt.geom.RoundRectangle2D;
 import java.awt.image.BufferedImage;
-import java.util.*;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
+
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+import javax.swing.Timer;
 
 public class VendingFallFromSky extends JPanel implements ActionListener {
     private static final int WINDOW_WIDTH = 600;
     private static final int WINDOW_HEIGHT = 600;
-    
+
     // Static frame reference for transitions
     private static JFrame frame;
-    
+
     private Timer gameTimer;
     private VendingMachine vendingMachine;
     private List<Cloud> clouds;
@@ -92,9 +109,12 @@ public class VendingFallFromSky extends JPanel implements ActionListener {
                 backBuffer = null;
             }
             // Clear collections
-            if (particles != null) particles.clear();
-            if (clouds != null) clouds.clear();
-            if (rainDrops != null) rainDrops.clear();
+            if (particles != null)
+                particles.clear();
+            if (clouds != null)
+                clouds.clear();
+            if (rainDrops != null)
+                rainDrops.clear();
         } catch (Exception e) {
             System.err.println("Error during cleanup: " + e.getMessage());
         }
@@ -112,7 +132,7 @@ public class VendingFallFromSky extends JPanel implements ActionListener {
         stopAnimation();
         super.removeNotify();
     }
-    
+
     private void createBackBuffer() {
         try {
             if (getWidth() > 0 && getHeight() > 0) {
@@ -120,12 +140,13 @@ public class VendingFallFromSky extends JPanel implements ActionListener {
                 if (backBufferGraphics != null) {
                     backBufferGraphics.dispose();
                 }
-                
+
                 backBuffer = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_ARGB);
                 backBufferGraphics = backBuffer.createGraphics();
                 backBufferGraphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 backBufferGraphics.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
-                backBufferGraphics.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+                backBufferGraphics.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
+                        RenderingHints.VALUE_INTERPOLATION_BILINEAR);
             }
         } catch (Exception e) {
             System.err.println("Error creating back buffer: " + e.getMessage());
@@ -168,8 +189,9 @@ public class VendingFallFromSky extends JPanel implements ActionListener {
 
     @Override
     protected void paintComponent(Graphics g) {
-        if (g == null) return;
-        
+        if (g == null)
+            return;
+
         try {
             super.paintComponent(g);
 
@@ -178,7 +200,8 @@ public class VendingFallFromSky extends JPanel implements ActionListener {
                 createBackBuffer();
             }
 
-            if (backBufferGraphics == null) return;
+            if (backBufferGraphics == null)
+                return;
 
             // Clear back buffer
             backBufferGraphics.setColor(getBackground());
@@ -223,7 +246,7 @@ public class VendingFallFromSky extends JPanel implements ActionListener {
             // Draw back buffer to screen
             Graphics2D g2d = (Graphics2D) g;
             g2d.drawImage(backBuffer, 0, 0, null);
-            
+
         } catch (Exception e) {
             System.err.println("Error in paintComponent: " + e.getMessage());
         }
@@ -236,10 +259,10 @@ public class VendingFallFromSky extends JPanel implements ActionListener {
             completionTimer = 0;
             System.out.println("Animation completed, starting transition timer...");
         }
-        
+
         if (animationComplete) {
             completionTimer++;
-            if (completionTimer>60) {
+            if (completionTimer > 60) {
                 System.out.println("to sideview");
                 stopAnimation();
                 transitionToNextScene();
@@ -252,8 +275,8 @@ public class VendingFallFromSky extends JPanel implements ActionListener {
             if (frame != null) {
                 System.out.println("Starting transition to SideView");
                 // Stop current animation first
-                // stopAnimation();
-                
+                stopAnimation();
+
                 // Create SideView scene
                 SideView nextScene = new SideView();
                 SideView.setFrame(frame);
@@ -261,6 +284,8 @@ public class VendingFallFromSky extends JPanel implements ActionListener {
                 frame.setContentPane(nextScene);
                 frame.revalidate();
                 frame.repaint();
+
+                nextScene.startAnimation();
 
                 System.out.println("Transition complete!");
             } else {
@@ -335,7 +360,8 @@ public class VendingFallFromSky extends JPanel implements ActionListener {
         // Create multiple expanding ground layers for realistic depth
         for (int i = 0; i < 5; i++) {
             float layerProgress = Math.max(0, groundProgress - i * 0.15f);
-            if (layerProgress <= 0) continue;
+            if (layerProgress <= 0)
+                continue;
 
             float layerSize = groundSize * (0.7f + i * 0.3f) * layerProgress;
             int baseAlpha = (int) (visibility * (150 - i * 25));
@@ -507,10 +533,18 @@ public class VendingFallFromSky extends JPanel implements ActionListener {
             this.pulsePhase = random.nextFloat() * (float) Math.PI * 2;
 
             switch (layer) {
-                case 0: opacity = 200; break;
-                case 1: opacity = 150; break;
-                case 2: opacity = 100; break;
-                case 3: opacity = 60; break;
+                case 0:
+                    opacity = 200;
+                    break;
+                case 1:
+                    opacity = 150;
+                    break;
+                case 2:
+                    opacity = 100;
+                    break;
+                case 3:
+                    opacity = 60;
+                    break;
             }
         }
 
@@ -547,10 +581,12 @@ public class VendingFallFromSky extends JPanel implements ActionListener {
         }
 
         public void draw(Graphics2D g2d) {
-            if (opacity <= 0) return;
+            if (opacity <= 0)
+                return;
 
             float layerAlpha = opacity * (1.0f - layer * 0.2f);
-            if (layerAlpha <= 0) return;
+            if (layerAlpha <= 0)
+                return;
 
             Color cloudColor = new Color(255, 255, 255, (int) layerAlpha);
 
@@ -668,7 +704,8 @@ public class VendingFallFromSky extends JPanel implements ActionListener {
 
         public void draw(Graphics2D g2d) {
             float scale = 1.2f - (fallProgress * 1.1f);
-            if (scale <= 0.05f) scale = 0.05f;
+            if (scale <= 0.05f)
+                scale = 0.05f;
 
             float width = 90 * scale;
             float height = 140 * scale;
@@ -694,7 +731,8 @@ public class VendingFallFromSky extends JPanel implements ActionListener {
             if (scale > 0.4f) {
                 // Drop shadow
                 g2d.setColor(new Color(0, 0, 0, (int) (50 * scale)));
-                g2d.fill(new RoundRectangle2D.Float(-width / 2 + 3, -height / 2 + 3, width, height, 12 * scale, 12 * scale));
+                g2d.fill(new RoundRectangle2D.Float(-width / 2 + 3, -height / 2 + 3, width, height, 12 * scale,
+                        12 * scale));
 
                 // Main body with gradient
                 GradientPaint bodyGradient = new GradientPaint(
@@ -712,20 +750,24 @@ public class VendingFallFromSky extends JPanel implements ActionListener {
                 g2d.setPaint(new GradientPaint(
                         -width / 3, -height / 3, new Color(70, 130, 180, 200),
                         width / 3, height / 3, new Color(30, 60, 120, 180)));
-                g2d.fill(new RoundRectangle2D.Float(-width * 0.35f, -height * 0.35f, width * 0.7f, height * 0.55f, 8 * scale, 8 * scale));
+                g2d.fill(new RoundRectangle2D.Float(-width * 0.35f, -height * 0.35f, width * 0.7f, height * 0.55f,
+                        8 * scale, 8 * scale));
 
                 // Glass shine
                 g2d.setColor(new Color(255, 255, 255, 60));
-                g2d.fill(new RoundRectangle2D.Float(-width * 0.25f, -height * 0.35f, width * 0.15f, height * 0.55f, 6 * scale, 6 * scale));
+                g2d.fill(new RoundRectangle2D.Float(-width * 0.25f, -height * 0.35f, width * 0.15f, height * 0.55f,
+                        6 * scale, 6 * scale));
 
                 // Dispenser slot
                 g2d.setColor(new Color(30, 30, 30));
-                g2d.fill(new RoundRectangle2D.Float(-width * 0.25f, height * 0.15f, width * 0.5f, height * 0.1f, 5 * scale, 5 * scale));
+                g2d.fill(new RoundRectangle2D.Float(-width * 0.25f, height * 0.15f, width * 0.5f, height * 0.1f,
+                        5 * scale, 5 * scale));
 
                 // Buttons
                 g2d.setColor(new Color(200, 200, 200));
                 for (int i = 0; i < 3; i++) {
-                    g2d.fill(new RoundRectangle2D.Float(width * 0.2f, -height * 0.25f + i * (height * 0.12f), width * 0.15f, height * 0.08f, 4 * scale, 4 * scale));
+                    g2d.fill(new RoundRectangle2D.Float(width * 0.2f, -height * 0.25f + i * (height * 0.12f),
+                            width * 0.15f, height * 0.08f, 4 * scale, 4 * scale));
                 }
             } else {
                 // Far away → simplified box

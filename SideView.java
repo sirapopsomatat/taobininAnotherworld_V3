@@ -1,34 +1,50 @@
 // SideView.java - Fixed version with auto loop
 package projectCG;
 
-import javax.swing.*;
-import javax.swing.Timer;
-import java.awt.*;
-import java.awt.event.*;
-import java.awt.geom.*;
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.FontMetrics;
+import java.awt.GradientPaint;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Ellipse2D;
+import java.awt.geom.Rectangle2D;
+import java.awt.geom.RoundRectangle2D;
 import java.awt.image.BufferedImage;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Random;
 import java.util.concurrent.CopyOnWriteArrayList;
+
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+import javax.swing.Timer;
 
 public class SideView extends JPanel implements ActionListener {
     private static final int WINDOW_WIDTH = 600;
     private static final int WINDOW_HEIGHT = 600;
-    
+
     private Timer timer;
     private VendingMachine vendingMachine;
     private List<Cloud> clouds;
     private List<RainDrop> rainDrops;
-    private List<PortalParticle> portalParticles;
-    private List<CrashParticle> crashParticles;
+    private List<PortalParticle> portalParticles = new ArrayList<>();
+    private List<CrashParticle> crashParticles = new ArrayList<>();
     private Random random;
     private float time = 0;
     private boolean animationComplete = false;
     private int completionTimer = 0;
-    
+
     // Static frame reference for transitions
     private static JFrame frame;
-    
+
     // Double buffering for smoother rendering
     private BufferedImage backBuffer;
     private Graphics2D backBufferGraphics;
@@ -47,7 +63,7 @@ public class SideView extends JPanel implements ActionListener {
         this.setFocusable(true);
         this.setDoubleBuffered(true);
         System.out.println("SideView initialized");
-        
+
         // Initialize objects
         clouds = new ArrayList<>();
         rainDrops = new ArrayList<>();
@@ -106,10 +122,14 @@ public class SideView extends JPanel implements ActionListener {
                 backBuffer = null;
             }
             // Clear particle collections
-            if (portalParticles != null) portalParticles.clear();
-            if (crashParticles != null) crashParticles.clear();
-            if (clouds != null) clouds.clear();
-            if (rainDrops != null) rainDrops.clear();
+            if (portalParticles != null)
+                portalParticles.clear();
+            if (crashParticles != null)
+                crashParticles.clear();
+            if (clouds != null)
+                clouds.clear();
+            if (rainDrops != null)
+                rainDrops.clear();
         } catch (Exception e) {
             System.err.println("Error during cleanup: " + e.getMessage());
         }
@@ -127,7 +147,7 @@ public class SideView extends JPanel implements ActionListener {
         stopAnimation();
         super.removeNotify();
     }
-    
+
     private void createBackBuffer() {
         try {
             if (getWidth() > 0 && getHeight() > 0) {
@@ -135,7 +155,7 @@ public class SideView extends JPanel implements ActionListener {
                 if (backBufferGraphics != null) {
                     backBufferGraphics.dispose();
                 }
-                
+
                 backBuffer = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_ARGB);
                 backBufferGraphics = backBuffer.createGraphics();
                 backBufferGraphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -148,8 +168,9 @@ public class SideView extends JPanel implements ActionListener {
 
     @Override
     protected void paintComponent(Graphics g) {
-        if (g == null) return;
-        
+        if (g == null)
+            return;
+
         try {
             super.paintComponent(g);
 
@@ -158,7 +179,8 @@ public class SideView extends JPanel implements ActionListener {
                 createBackBuffer();
             }
 
-            if (backBufferGraphics == null) return;
+            if (backBufferGraphics == null)
+                return;
 
             // Clear back buffer
             backBufferGraphics.setColor(getBackground());
@@ -222,12 +244,12 @@ public class SideView extends JPanel implements ActionListener {
             // Draw back buffer to screen
             Graphics2D g2d = (Graphics2D) g;
             g2d.drawImage(backBuffer, 0, 0, null);
-            
+
             // Draw completion message
             if (animationComplete) {
                 drawCompletionMessage(g2d);
             }
-            
+
         } catch (Exception e) {
             System.err.println("Error in paintComponent: " + e.getMessage());
         }
@@ -300,7 +322,7 @@ public class SideView extends JPanel implements ActionListener {
         int x = (getWidth() - fm.stringWidth(message)) / 2;
         int y = getHeight() / 2 + 100;
         g2d.drawString(message, x, y);
-        
+
         g2d.setFont(new Font("Arial", Font.PLAIN, 16));
         fm = g2d.getFontMetrics();
         String subMessage = "Moving to next scene...";
@@ -331,7 +353,7 @@ public class SideView extends JPanel implements ActionListener {
         // Update vending machine
         if (vendingMachine != null && !animationComplete) {
             vendingMachine.update();
-            
+
             // Check if animation is complete
             if (vendingMachine.onGround && vendingMachine.timeOnGround > 180) { // 3 seconds
                 animationComplete = true;
@@ -349,24 +371,21 @@ public class SideView extends JPanel implements ActionListener {
         }
 
         // Update portal particles
-        Iterator<PortalParticle> portalIterator = portalParticles.iterator();
-        while (portalIterator.hasNext()) {
-            PortalParticle particle = portalIterator.next();
+        List<PortalParticle> toRemove = new ArrayList<>();
+        for (PortalParticle particle : portalParticles) {
             particle.update();
             if (particle.isDead()) {
-                portalIterator.remove();
+                toRemove.add(particle);
             }
         }
+        portalParticles.removeAll(toRemove);
 
         // Update crash particles
-        Iterator<CrashParticle> crashIterator = crashParticles.iterator();
-        while (crashIterator.hasNext()) {
-            CrashParticle particle = crashIterator.next();
+        List<CrashParticle> toRemove1 = new ArrayList<>();
+        for (CrashParticle particle : crashParticles) {
             particle.update();
-            if (particle.isDead()) {
-                crashIterator.remove();
-            }
         }
+        crashParticles.removeIf(CrashParticle::isDead);
 
         // Add new background clouds occasionally
         if (random.nextInt(600) == 0 && clouds.size() < 10) {
@@ -382,19 +401,21 @@ public class SideView extends JPanel implements ActionListener {
         try {
             if (frame != null) {
                 System.out.println("Transitioning to next scene...");
-                
+
                 // Stop current animation
                 stopAnimation();
-                
+
                 LofiTaoBinVendingMachine nextScene = new LofiTaoBinVendingMachine();
                 LofiTaoBinVendingMachine.setFrame(frame);
                 frame.setContentPane(nextScene);
-                
+
                 // For now, just print a message
                 System.out.println("Ready to transition to next scene - please implement your next scene class!");
-                
+
                 frame.revalidate();
                 frame.repaint();
+
+                nextScene.startAnimation();
 
                 System.out.println("Transition ready!");
             } else {
@@ -437,7 +458,7 @@ public class SideView extends JPanel implements ActionListener {
 
         public void draw(Graphics2D g2d) {
             float alpha = life / maxLife;
-            g2d.setColor(new Color(color.getRed(), color.getGreen(), color.getBlue(), 
+            g2d.setColor(new Color(color.getRed(), color.getGreen(), color.getBlue(),
                     (int) (alpha * color.getAlpha())));
             g2d.fill(new Ellipse2D.Float(x - size / 2, y - size / 2, size, size));
         }
@@ -472,7 +493,7 @@ public class SideView extends JPanel implements ActionListener {
 
         public void draw(Graphics2D g2d) {
             float alpha = life / maxLife;
-            g2d.setColor(new Color(color.getRed(), color.getGreen(), color.getBlue(), 
+            g2d.setColor(new Color(color.getRed(), color.getGreen(), color.getBlue(),
                     (int) (alpha * color.getAlpha())));
             g2d.fill(new Ellipse2D.Float(x - size / 2, y - size / 2, size, size));
         }
@@ -545,9 +566,12 @@ public class SideView extends JPanel implements ActionListener {
                 y += driftY;
 
                 // Wrap around screen
-                if (x < -size) x = WINDOW_WIDTH + size;
-                if (x > WINDOW_WIDTH + size) x = -size;
-                if (y > WINDOW_HEIGHT) y = -size;
+                if (x < -size)
+                    x = WINDOW_WIDTH + size;
+                if (x > WINDOW_WIDTH + size)
+                    x = -size;
+                if (y > WINDOW_HEIGHT)
+                    y = -size;
             } else {
                 // Dispersing clouds expand and fade
                 size += disperseSpeed;
@@ -564,7 +588,8 @@ public class SideView extends JPanel implements ActionListener {
         }
 
         public void draw(Graphics2D g2d) {
-            if (opacity <= 0) return;
+            if (opacity <= 0)
+                return;
 
             Color cloudColor = new Color(255, 255, 255, (int) Math.max(0, opacity));
             g2d.setColor(cloudColor);
@@ -601,7 +626,7 @@ public class SideView extends JPanel implements ActionListener {
             this.x = x;
             this.y = y;
             this.rotationSpeed = (random.nextFloat() - 0.5f) * 0.03f;
-            
+
             // Create portal particles at spawn
             for (int i = 0; i < 8; i++) {
                 portalParticles.add(new PortalParticle(x + (random.nextFloat() - 0.5f) * 40, 60));
@@ -630,12 +655,12 @@ public class SideView extends JPanel implements ActionListener {
                     velocityY = 0;
                     rotationSpeed = 0;
                     rotation = 0; // settle upright
-                    
+
                     // Create crash particles
                     for (int i = 0; i < 12; i++) {
                         crashParticles.add(new CrashParticle(x + (random.nextFloat() - 0.5f) * 60, y + 20));
                     }
-                    
+
                     // Create dispersing cloud
                     clouds.add(new Cloud(x + (random.nextFloat() - 0.5f) * 80, y - 30, 50, true));
                 }
@@ -653,7 +678,8 @@ public class SideView extends JPanel implements ActionListener {
         }
 
         private float getGroundY() {
-            if (onGround) return y;
+            if (onGround)
+                return y;
 
             float skyY = 60;
             float groundY = WINDOW_HEIGHT - 180;
@@ -729,7 +755,8 @@ public class SideView extends JPanel implements ActionListener {
         }
 
         public void drawShadow(Graphics2D g2d) {
-            if (fallDistance < 0.5f) return;
+            if (fallDistance < 0.5f)
+                return;
 
             float scale = getScale();
             float shadowScale = scale * (fallDistance * fallDistance);
@@ -757,339 +784,344 @@ public class SideView extends JPanel implements ActionListener {
 // import java.util.*;
 
 // public class SideView extends JPanel implements ActionListener {
-//     private static final int WINDOW_WIDTH = 600;
-//     private static final int WINDOW_HEIGHT = 600;
-    
-//     private Timer timer;
-//     private VendingMachine vendingMachine;
-//     private Random random;
-//     private float time = 0;
-//     private boolean animationComplete = false;
-//     private int completionTimer = 0;
-    
-//     // Static frame reference for transitions
-//     private static JFrame frame;
-    
-//     // Double buffering
-//     private BufferedImage backBuffer;
-//     private Graphics2D backBufferGraphics;
+// private static final int WINDOW_WIDTH = 600;
+// private static final int WINDOW_HEIGHT = 600;
 
-//     // Colors
-//     private final Color SKY_COLOR = new Color(135, 206, 235);
-//     private final Color GROUND_COLOR = new Color(34, 139, 34);
+// private Timer timer;
+// private VendingMachine vendingMachine;
+// private Random random;
+// private float time = 0;
+// private boolean animationComplete = false;
+// private int completionTimer = 0;
 
-//     public SideView() {
-//         this.setPreferredSize(new Dimension(WINDOW_WIDTH, WINDOW_HEIGHT));
-//         this.setBackground(SKY_COLOR);
-//         this.setFocusable(true);
-//         this.setDoubleBuffered(true);
-        
-//         random = new Random();
-        
-//         // Create single vending machine starting from top
-//         vendingMachine = new VendingMachine(WINDOW_WIDTH / 2, -100);
-        
-//         // Start timer
-//         timer = new Timer(16, this); // ~60 FPS
-        
-//         System.out.println("SideView initialized - simple falling vending machine");
-//     }
+// // Static frame reference for transitions
+// private static JFrame frame;
 
-//     public static void setFrame(JFrame f) {
-//         frame = f;
-//         System.out.println("SideView frame reference set: " + (f != null));
-//     }
+// // Double buffering
+// private BufferedImage backBuffer;
+// private Graphics2D backBufferGraphics;
 
-//     public void startAnimation() {
-//         if (timer != null && !timer.isRunning()) {
-//             timer.start();
-//             System.out.println("SideView animation started");
-//         }
-//     }
+// // Colors
+// private final Color SKY_COLOR = new Color(135, 206, 235);
+// private final Color GROUND_COLOR = new Color(34, 139, 34);
 
-//     public void stopAnimation() {
-//         if (timer != null) {
-//             timer.stop();
-//         }
-//         cleanupResources();
-//     }
+// public SideView() {
+// this.setPreferredSize(new Dimension(WINDOW_WIDTH, WINDOW_HEIGHT));
+// this.setBackground(SKY_COLOR);
+// this.setFocusable(true);
+// this.setDoubleBuffered(true);
 
-//     private void cleanupResources() {
-//         try {
-//             if (backBufferGraphics != null) {
-//                 backBufferGraphics.dispose();
-//                 backBufferGraphics = null;
-//             }
-//             if (backBuffer != null) {
-//                 backBuffer.flush();
-//                 backBuffer = null;
-//             }
-//         } catch (Exception e) {
-//             System.err.println("Error during cleanup: " + e.getMessage());
-//         }
-//     }
+// random = new Random();
 
-//     @Override
-//     public void addNotify() {
-//         super.addNotify();
-//         createBackBuffer();
-//         startAnimation();
-//     }
+// // Create single vending machine starting from top
+// vendingMachine = new VendingMachine(WINDOW_WIDTH / 2, -100);
 
-//     @Override
-//     public void removeNotify() {
-//         stopAnimation();
-//         super.removeNotify();
-//     }
-    
-//     private void createBackBuffer() {
-//         try {
-//             if (getWidth() > 0 && getHeight() > 0) {
-//                 if (backBufferGraphics != null) {
-//                     backBufferGraphics.dispose();
-//                 }
-//                 backBuffer = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_ARGB);
-//                 backBufferGraphics = backBuffer.createGraphics();
-//                 backBufferGraphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-//             }
-//         } catch (Exception e) {
-//             System.err.println("Error creating back buffer: " + e.getMessage());
-//         }
-//     }
+// // Start timer
+// timer = new Timer(16, this); // ~60 FPS
 
-//     @Override
-//     protected void paintComponent(Graphics g) {
-//         if (g == null) return;
-        
-//         try {
-//             super.paintComponent(g);
+// System.out.println("SideView initialized - simple falling vending machine");
+// }
 
-//             if (backBuffer == null || backBuffer.getWidth() != getWidth() || backBuffer.getHeight() != getHeight()) {
-//                 createBackBuffer();
-//             }
+// public static void setFrame(JFrame f) {
+// frame = f;
+// System.out.println("SideView frame reference set: " + (f != null));
+// }
 
-//             if (backBufferGraphics == null) return;
+// public void startAnimation() {
+// if (timer != null && !timer.isRunning()) {
+// timer.start();
+// System.out.println("SideView animation started");
+// }
+// }
 
-//             // Clear background
-//             backBufferGraphics.setColor(SKY_COLOR);
-//             backBufferGraphics.fillRect(0, 0, getWidth(), getHeight());
+// public void stopAnimation() {
+// if (timer != null) {
+// timer.stop();
+// }
+// cleanupResources();
+// }
 
-//             // Draw ground
-//             drawGround(backBufferGraphics);
-            
-//             // Draw vending machine
-//             if (vendingMachine != null) {
-//                 vendingMachine.draw(backBufferGraphics);
-//             }
+// private void cleanupResources() {
+// try {
+// if (backBufferGraphics != null) {
+// backBufferGraphics.dispose();
+// backBufferGraphics = null;
+// }
+// if (backBuffer != null) {
+// backBuffer.flush();
+// backBuffer = null;
+// }
+// } catch (Exception e) {
+// System.err.println("Error during cleanup: " + e.getMessage());
+// }
+// }
 
-//             // Draw title
-//             drawTitle(backBufferGraphics);
+// @Override
+// public void addNotify() {
+// super.addNotify();
+// createBackBuffer();
+// startAnimation();
+// }
 
-//             // Copy to screen
-//             Graphics2D g2d = (Graphics2D) g;
-//             g2d.drawImage(backBuffer, 0, 0, null);
-            
-//             // Draw completion message if done
-//             if (animationComplete) {
-//                 drawCompletionMessage(g2d);
-//             }
-            
-//         } catch (Exception e) {
-//             System.err.println("Error in paintComponent: " + e.getMessage());
-//         }
-//     }
+// @Override
+// public void removeNotify() {
+// stopAnimation();
+// super.removeNotify();
+// }
 
-//     private void drawGround(Graphics2D g2d) {
-//         // Simple ground
-//         g2d.setColor(GROUND_COLOR);
-//         g2d.fillRect(0, WINDOW_HEIGHT - 100, WINDOW_WIDTH, 100);
-        
-//         // Ground line
-//         g2d.setColor(new Color(0, 100, 0));
-//         g2d.setStroke(new BasicStroke(3));
-//         g2d.drawLine(0, WINDOW_HEIGHT - 100, WINDOW_WIDTH, WINDOW_HEIGHT - 100);
-//     }
+// private void createBackBuffer() {
+// try {
+// if (getWidth() > 0 && getHeight() > 0) {
+// if (backBufferGraphics != null) {
+// backBufferGraphics.dispose();
+// }
+// backBuffer = new BufferedImage(getWidth(), getHeight(),
+// BufferedImage.TYPE_INT_ARGB);
+// backBufferGraphics = backBuffer.createGraphics();
+// backBufferGraphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+// RenderingHints.VALUE_ANTIALIAS_ON);
+// }
+// } catch (Exception e) {
+// System.err.println("Error creating back buffer: " + e.getMessage());
+// }
+// }
 
-//     private void drawTitle(Graphics2D g2d) {
-//         g2d.setColor(Color.WHITE);
-//         g2d.setFont(new Font("Arial", Font.BOLD, 24));
-//         g2d.drawString("Side View", 20, 40);
-        
-//         g2d.setFont(new Font("Arial", Font.PLAIN, 16));
-//         g2d.drawString("Single Vending Machine Fall", 20, 65);
-//     }
+// @Override
+// protected void paintComponent(Graphics g) {
+// if (g == null) return;
 
-//     private void drawCompletionMessage(Graphics2D g2d) {
-//         g2d.setColor(new Color(255, 255, 255, 200));
-//         g2d.setFont(new Font("Arial", Font.BOLD, 24));
-//         String message = "Fall Complete!";
-//         FontMetrics fm = g2d.getFontMetrics();
-//         int x = (getWidth() - fm.stringWidth(message)) / 2;
-//         int y = getHeight() / 2;
-//         g2d.drawString(message, x, y);
-        
-//         g2d.setFont(new Font("Arial", Font.PLAIN, 16));
-//         String subMessage = "Looping back to sky view...";
-//         fm = g2d.getFontMetrics();
-//         x = (getWidth() - fm.stringWidth(subMessage)) / 2;
-//         y += 30;
-//         g2d.drawString(subMessage, x, y);
-//     }
+// try {
+// super.paintComponent(g);
 
-//     @Override
-//     public void actionPerformed(ActionEvent e) {
-//         time++;
+// if (backBuffer == null || backBuffer.getWidth() != getWidth() ||
+// backBuffer.getHeight() != getHeight()) {
+// createBackBuffer();
+// }
 
-//         // Update vending machine
-//         if (vendingMachine != null && !animationComplete) {
-//             vendingMachine.update();
-            
-//             // Check if animation is complete
-//             if (vendingMachine.isOnGround() && vendingMachine.getTimeOnGround() > 120) { // 2 seconds
-//                 if (!animationComplete) {
-//                     animationComplete = true;
-//                     completionTimer = 0;
-//                     System.out.println("SideView animation complete!");
-//                 }
-//             }
-//         }
+// if (backBufferGraphics == null) return;
 
-//         // Auto transition after completion
-//         if (animationComplete) {// 2 seconds after completion
-//             transitionToLofiVendingMachine();
-//         }
+// // Clear background
+// backBufferGraphics.setColor(SKY_COLOR);
+// backBufferGraphics.fillRect(0, 0, getWidth(), getHeight());
 
-//         repaint();
-//     }
+// // Draw ground
+// drawGround(backBufferGraphics);
 
-//     private void transitionToLofiVendingMachine() {
-//         try {
-//             System.out.println("Transitioning back to VendingFallFromSky...");
-//             System.out.println("Frame reference: " + (frame != null ? "OK" : "NULL"));
-            
-//             if (frame != null) {
-//                 // Stop current animation
-//                 stopAnimation();
-                
-//                 // Create new sky view scene
-//                 LofiTaoBinVendingMachine nextscene = new LofiTaoBinVendingMachine();
-//                 LofiTaoBinVendingMachine.setFrame(frame);
-//                 // Switch panels
-//                 frame.setContentPane(nextscene);
-//                 frame.revalidate();
-//                 frame.repaint();
-                
-//                 System.out.println("Successfully transitioned back to sky view!");
-//             } else {
-//                 System.err.println("ERROR: Cannot transition - frame is null!");
-//             }
-//         } catch (Exception ex) {
-//             System.err.println("Error during transition: " + ex.getMessage());
-//             ex.printStackTrace();
-//         }
-//     }
+// // Draw vending machine
+// if (vendingMachine != null) {
+// vendingMachine.draw(backBufferGraphics);
+// }
 
-//     // Simple VendingMachine class for side view
-//     class VendingMachine {
-//         private float x, y;
-//         private float velocityY = 0;
-//         private float rotation = 0;
-//         private float rotationSpeed;
-//         private boolean onGround = false;
-//         private int timeOnGround = 0;
-//         private final int width = 80;
-//         private final int height = 120;
-//         private final float gravity = 0.5f;
-//         private final int groundLevel = WINDOW_HEIGHT - 100;
+// // Draw title
+// drawTitle(backBufferGraphics);
 
-//         public VendingMachine(float startX, float startY) {
-//             this.x = startX;
-//             this.y = startY;
-//             this.rotationSpeed = (random.nextFloat() - 0.5f) * 0.1f;
-//             System.out.println("VendingMachine created at: " + startX + ", " + startY);
-//         }
+// // Copy to screen
+// Graphics2D g2d = (Graphics2D) g;
+// g2d.drawImage(backBuffer, 0, 0, null);
 
-//         public void update() {
-//             if (!onGround) {
-//                 // Apply gravity
-//                 velocityY += gravity;
-//                 y += velocityY;
-                
-//                 // Add rotation while falling
-//                 rotation += rotationSpeed;
-                
-//                 // Check ground collision
-//                 if (y + height/2 >= groundLevel) {
-//                     y = groundLevel - height/2;
-//                     onGround = true;
-//                     velocityY = 0;
-//                     rotationSpeed = 0;
-//                     rotation = 0; // Stand upright
-//                     System.out.println("Vending machine landed!");
-//                 }
-//             } else {
-//                 timeOnGround++;
-//                 // Small bounce/settle effect
-//                 if (timeOnGround < 20) {
-//                     y += Math.sin(timeOnGround * 0.3f) * 2;
-//                 }
-//             }
-//         }
+// // Draw completion message if done
+// if (animationComplete) {
+// drawCompletionMessage(g2d);
+// }
 
-//         public void draw(Graphics2D g2d) {
-//             AffineTransform oldTransform = g2d.getTransform();
-            
-//             // Apply rotation around center
-//             g2d.translate(x, y);
-//             g2d.rotate(rotation);
+// } catch (Exception e) {
+// System.err.println("Error in paintComponent: " + e.getMessage());
+// }
+// }
 
-//             // Shadow (only when on or near ground)
-//             if (y > WINDOW_HEIGHT / 2) {
-//                 g2d.setColor(new Color(0, 0, 0, 100));
-//                 g2d.fillOval(-width/2 - 10, height/2 - 5, width + 20, 20);
-//             }
+// private void drawGround(Graphics2D g2d) {
+// // Simple ground
+// g2d.setColor(GROUND_COLOR);
+// g2d.fillRect(0, WINDOW_HEIGHT - 100, WINDOW_WIDTH, 100);
 
-//             // Main body
-//             g2d.setColor(new Color(60, 60, 60));
-//             g2d.fillRoundRect(-width/2, -height/2, width, height, 10, 10);
+// // Ground line
+// g2d.setColor(new Color(0, 100, 0));
+// g2d.setStroke(new BasicStroke(3));
+// g2d.drawLine(0, WINDOW_HEIGHT - 100, WINDOW_WIDTH, WINDOW_HEIGHT - 100);
+// }
 
-//             // Front panel
-//             g2d.setColor(new Color(80, 80, 80));
-//             g2d.fillRoundRect(-width/2 + 5, -height/2 + 10, width - 10, height - 20, 8, 8);
+// private void drawTitle(Graphics2D g2d) {
+// g2d.setColor(Color.WHITE);
+// g2d.setFont(new Font("Arial", Font.BOLD, 24));
+// g2d.drawString("Side View", 20, 40);
 
-//             // Glass section
-//             g2d.setColor(new Color(100, 150, 200, 150));
-//             g2d.fillRoundRect(-width/2 + 8, -height/2 + 15, width - 16, height/2, 5, 5);
+// g2d.setFont(new Font("Arial", Font.PLAIN, 16));
+// g2d.drawString("Single Vending Machine Fall", 20, 65);
+// }
 
-//             // Selection buttons
-//             g2d.setColor(new Color(200, 200, 200));
-//             for (int i = 0; i < 3; i++) {
-//                 for (int j = 0; j < 2; j++) {
-//                     g2d.fillRoundRect(-20 + j * 15, -10 + i * 12, 10, 8, 2, 2);
-//                 }
-//             }
+// private void drawCompletionMessage(Graphics2D g2d) {
+// g2d.setColor(new Color(255, 255, 255, 200));
+// g2d.setFont(new Font("Arial", Font.BOLD, 24));
+// String message = "Fall Complete!";
+// FontMetrics fm = g2d.getFontMetrics();
+// int x = (getWidth() - fm.stringWidth(message)) / 2;
+// int y = getHeight() / 2;
+// g2d.drawString(message, x, y);
 
-//             // Coin slot
-//             g2d.setColor(Color.BLACK);
-//             g2d.fillRoundRect(-15, height/2 - 20, 30, 8, 4, 4);
+// g2d.setFont(new Font("Arial", Font.PLAIN, 16));
+// String subMessage = "Looping back to sky view...";
+// fm = g2d.getFontMetrics();
+// x = (getWidth() - fm.stringWidth(subMessage)) / 2;
+// y += 30;
+// g2d.drawString(subMessage, x, y);
+// }
 
-//             // Brand text
-//             g2d.setColor(Color.WHITE);
-//             g2d.setFont(new Font("Arial", Font.BOLD, 12));
-//             FontMetrics fm = g2d.getFontMetrics();
-//             String text = "VEND";
-//             int textWidth = fm.stringWidth(text);
-//             g2d.drawString(text, -textWidth/2, -height/2 + 25);
+// @Override
+// public void actionPerformed(ActionEvent e) {
+// time++;
 
-//             g2d.setTransform(oldTransform);
-//         }
+// // Update vending machine
+// if (vendingMachine != null && !animationComplete) {
+// vendingMachine.update();
 
-//         public boolean isOnGround() {
-//             return onGround;
-//         }
+// // Check if animation is complete
+// if (vendingMachine.isOnGround() && vendingMachine.getTimeOnGround() > 120) {
+// // 2 seconds
+// if (!animationComplete) {
+// animationComplete = true;
+// completionTimer = 0;
+// System.out.println("SideView animation complete!");
+// }
+// }
+// }
 
-//         public int getTimeOnGround() {
-//             return timeOnGround;
-//         }
-//     }
+// // Auto transition after completion
+// if (animationComplete) {// 2 seconds after completion
+// transitionToLofiVendingMachine();
+// }
+
+// repaint();
+// }
+
+// private void transitionToLofiVendingMachine() {
+// try {
+// System.out.println("Transitioning back to VendingFallFromSky...");
+// System.out.println("Frame reference: " + (frame != null ? "OK" : "NULL"));
+
+// if (frame != null) {
+// // Stop current animation
+// stopAnimation();
+
+// // Create new sky view scene
+// LofiTaoBinVendingMachine nextscene = new LofiTaoBinVendingMachine();
+// LofiTaoBinVendingMachine.setFrame(frame);
+// // Switch panels
+// frame.setContentPane(nextscene);
+// frame.revalidate();
+// frame.repaint();
+
+// System.out.println("Successfully transitioned back to sky view!");
+// } else {
+// System.err.println("ERROR: Cannot transition - frame is null!");
+// }
+// } catch (Exception ex) {
+// System.err.println("Error during transition: " + ex.getMessage());
+// ex.printStackTrace();
+// }
+// }
+
+// // Simple VendingMachine class for side view
+// class VendingMachine {
+// private float x, y;
+// private float velocityY = 0;
+// private float rotation = 0;
+// private float rotationSpeed;
+// private boolean onGround = false;
+// private int timeOnGround = 0;
+// private final int width = 80;
+// private final int height = 120;
+// private final float gravity = 0.5f;
+// private final int groundLevel = WINDOW_HEIGHT - 100;
+
+// public VendingMachine(float startX, float startY) {
+// this.x = startX;
+// this.y = startY;
+// this.rotationSpeed = (random.nextFloat() - 0.5f) * 0.1f;
+// System.out.println("VendingMachine created at: " + startX + ", " + startY);
+// }
+
+// public void update() {
+// if (!onGround) {
+// // Apply gravity
+// velocityY += gravity;
+// y += velocityY;
+
+// // Add rotation while falling
+// rotation += rotationSpeed;
+
+// // Check ground collision
+// if (y + height/2 >= groundLevel) {
+// y = groundLevel - height/2;
+// onGround = true;
+// velocityY = 0;
+// rotationSpeed = 0;
+// rotation = 0; // Stand upright
+// System.out.println("Vending machine landed!");
+// }
+// } else {
+// timeOnGround++;
+// // Small bounce/settle effect
+// if (timeOnGround < 20) {
+// y += Math.sin(timeOnGround * 0.3f) * 2;
+// }
+// }
+// }
+
+// public void draw(Graphics2D g2d) {
+// AffineTransform oldTransform = g2d.getTransform();
+
+// // Apply rotation around center
+// g2d.translate(x, y);
+// g2d.rotate(rotation);
+
+// // Shadow (only when on or near ground)
+// if (y > WINDOW_HEIGHT / 2) {
+// g2d.setColor(new Color(0, 0, 0, 100));
+// g2d.fillOval(-width/2 - 10, height/2 - 5, width + 20, 20);
+// }
+
+// // Main body
+// g2d.setColor(new Color(60, 60, 60));
+// g2d.fillRoundRect(-width/2, -height/2, width, height, 10, 10);
+
+// // Front panel
+// g2d.setColor(new Color(80, 80, 80));
+// g2d.fillRoundRect(-width/2 + 5, -height/2 + 10, width - 10, height - 20, 8,
+// 8);
+
+// // Glass section
+// g2d.setColor(new Color(100, 150, 200, 150));
+// g2d.fillRoundRect(-width/2 + 8, -height/2 + 15, width - 16, height/2, 5, 5);
+
+// // Selection buttons
+// g2d.setColor(new Color(200, 200, 200));
+// for (int i = 0; i < 3; i++) {
+// for (int j = 0; j < 2; j++) {
+// g2d.fillRoundRect(-20 + j * 15, -10 + i * 12, 10, 8, 2, 2);
+// }
+// }
+
+// // Coin slot
+// g2d.setColor(Color.BLACK);
+// g2d.fillRoundRect(-15, height/2 - 20, 30, 8, 4, 4);
+
+// // Brand text
+// g2d.setColor(Color.WHITE);
+// g2d.setFont(new Font("Arial", Font.BOLD, 12));
+// FontMetrics fm = g2d.getFontMetrics();
+// String text = "VEND";
+// int textWidth = fm.stringWidth(text);
+// g2d.drawString(text, -textWidth/2, -height/2 + 25);
+
+// g2d.setTransform(oldTransform);
+// }
+
+// public boolean isOnGround() {
+// return onGround;
+// }
+
+// public int getTimeOnGround() {
+// return timeOnGround;
+// }
+// }
 // }

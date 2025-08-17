@@ -28,7 +28,7 @@ class BeforebornTaobin extends JPanel implements ActionListener {
     private Timer timer;
     private static JFrame frame;
 
-    // Animation variables with floating point precision
+    // Animation variables with floating point precision - SPEED UP VALUES
     private double carX = -150.0;
     private double carSpeed = 0.0;
     private int roadY = 400;
@@ -49,34 +49,34 @@ class BeforebornTaobin extends JPanel implements ActionListener {
     private long lastFrameTime = System.nanoTime();
     private double deltaTime = 0.0;
 
-    // Flash effect variables
+    // Flash effect variables - FASTER TRANSITION
     private boolean isFlashing = false;
     private int flashTimer = 0;
     private double flashIntensity = 0.0;
     private boolean sceneTransitioned = false;
 
-    // Smooth sun and cloud animation variables
+    // Smooth sun and cloud animation variables - FASTER MOVEMENT
     private double sunX = 150.0;
     private double sunY = 70.0;
-    private double sunSpeedX = 0.8;
-    private double sunSpeedY = 0.3;
+    private double sunSpeedX = 4.0; // Increased from 0.8
+    private double sunSpeedY = 2.0; // Increased from 0.3
     private double sunBobOffset = 0.0;
     private double sunPulse = 0.0;
 
-    // Enhanced cloud positions with smooth movement
+    // Enhanced cloud positions with smooth movement - FASTER CLOUDS
     private double cloud1X = 100.0;
     private double cloud1Y = 80.0;
-    private double cloud1Speed = 1.2;
+    private double cloud1Speed = 6.0; // Increased from 1.2
     private double cloud1Bob = 0.0;
 
     private double cloud2X = 400.0;
     private double cloud2Y = 60.0;
-    private double cloud2Speed = 0.9;
+    private double cloud2Speed = 5.0; // Increased from 0.9
     private double cloud2Bob = 0.0;
 
     private double cloud3X = 250.0;
     private double cloud3Y = 100.0;
-    private double cloud3Speed = 1.5;
+    private double cloud3Speed = 7.0; // Increased from 1.5
     private double cloud3Bob = 0.0;
 
     // Smooth vending machine animation
@@ -118,7 +118,7 @@ class BeforebornTaobin extends JPanel implements ActionListener {
         timer = new Timer(TIMER_DELAY, this);
         setBackground(new Color(135, 206, 235));
         setDoubleBuffered(true);
-        carSpeed = 2.5;
+        carSpeed = 15.0; // Increased from 2.5 - MUCH FASTER CAR
     }
 
     // Fixed constructor that accepts JFrame parameter
@@ -249,12 +249,12 @@ class BeforebornTaobin extends JPanel implements ActionListener {
 
         CrashParticle() {
             try {
-                maxLife = life = 1.0 + Math.random();
-                rotationSpeed = (Math.random() - 0.5) * 10.0;
+                maxLife = life = 0.5 + Math.random() * 0.5; // Reduced from 1.0 + Math.random()
+                rotationSpeed = (Math.random() - 0.5) * 20.0; // Increased rotation speed
                 size = Math.max(1.0, 2.0 + Math.random() * 4.0);
             } catch (Exception e) {
                 // Fallback values
-                maxLife = life = 1.0;
+                maxLife = life = 0.5;
                 rotationSpeed = 0.0;
                 size = 2.0;
             }
@@ -271,13 +271,13 @@ class BeforebornTaobin extends JPanel implements ActionListener {
                 size = Math.max(1.0, 1.0 + Math.random() * 3.0);
                 rotation = Math.random() * Math.PI * 2;
                 alpha = 1.0;
-                life = 1.0;
+                life = 0.5; // Reduced from 1.0
             } catch (Exception e) {
                 // Fallback values
                 size = 2.0;
                 rotation = 0.0;
                 alpha = 1.0;
-                life = 1.0;
+                life = 0.5;
             }
         }
     }
@@ -330,8 +330,8 @@ class BeforebornTaobin extends JPanel implements ActionListener {
             Graphics2D g2d = (Graphics2D) g;
             g2d.drawImage(backBuffer, 0, 0, null);
 
-            // Handle scene transition
-            if (crashed && crashTimer >= 180 && !sceneTransitioned) {
+            // Handle scene transition - MUCH FASTER
+            if (crashed && crashTimer >= 30 && !sceneTransitioned) { // Reduced from 180
                 startFlashTransition();
             }
         } catch (Exception e) {
@@ -384,14 +384,14 @@ class BeforebornTaobin extends JPanel implements ActionListener {
 
             if (!crashed) {
                 carX += carSpeed * deltaTime * 60.0;
-                wheelRotation += deltaTime * 5.0;
+                wheelRotation += deltaTime * 25.0; // Increased wheel rotation speed
 
                 // Check collision with bounds checking
                 if (carX + 120 >= vendingMachineX - 5 && carX <= vendingMachineX + 85 && !crashed) {
                     crashed = true;
                     vendingMachineHit = true;
                     crashTimer = 0;
-                    machineShakeIntensity = 15.0;
+                    machineShakeIntensity = 25.0; // Increased shake intensity
 
                     // Create crash particles with limit
                     createCrashParticles();
@@ -409,25 +409,23 @@ class BeforebornTaobin extends JPanel implements ActionListener {
         }
     }
 
-    // ... (rest of the methods remain the same, but let me add the main method)
-
     private void createCrashParticles() {
         try {
-            int particlesToCreate = Math.min(15, MAX_PARTICLES - crashParticles.size());
+            int particlesToCreate = Math.min(20, MAX_PARTICLES - crashParticles.size()); // Increased particles
             for (int i = 0; i < particlesToCreate; i++) {
                 CrashParticle particle = new CrashParticle();
                 particle.x = carX + 60 + (random.nextDouble() - 0.5) * 80;
                 particle.y = roadY - 20 + (random.nextDouble() - 0.5) * 50;
-                particle.vx = (random.nextDouble() - 0.5) * 15;
-                particle.vy = (random.nextDouble() - 0.5) * 12 - 5;
+                particle.vx = (random.nextDouble() - 0.5) * 25; // Increased velocity
+                particle.vy = (random.nextDouble() - 0.5) * 20 - 8; // Increased velocity
                 particle.color = new Color(
                         Math.min(255, Math.max(0, 180 + random.nextInt(75))),
                         Math.min(255, Math.max(0, random.nextInt(120))),
                         Math.min(255, Math.max(0, random.nextInt(60))));
-                particle.life = 1.0 + random.nextDouble();
+                particle.life = 0.5 + random.nextDouble() * 0.5; // Reduced life
                 particle.maxLife = particle.life;
                 particle.rotation = random.nextDouble() * Math.PI * 2;
-                particle.rotationSpeed = (random.nextDouble() - 0.5) * 8.0;
+                particle.rotationSpeed = (random.nextDouble() - 0.5) * 15.0; // Increased rotation
                 crashParticles.add(particle);
             }
         } catch (Exception e) {
@@ -437,26 +435,26 @@ class BeforebornTaobin extends JPanel implements ActionListener {
 
     private void updateCrashedState() {
         try {
-            // Machine shake decay
-            if (crashTimer < 60) {
-                double shakeDecay = (60.0 - crashTimer) / 60.0;
+            // Machine shake decay - FASTER DECAY
+            if (crashTimer < 20) { // Reduced from 60
+                double shakeDecay = (20.0 - crashTimer) / 20.0;
                 machineShakeX = (random.nextDouble() - 0.5) * machineShakeIntensity * shakeDecay;
                 machineShakeY = (random.nextDouble() - 0.5) * machineShakeIntensity * shakeDecay * 0.5;
             } else {
-                machineShakeX = lerp(machineShakeX, 0, deltaTime * 5.0);
-                machineShakeY = lerp(machineShakeY, 0, deltaTime * 5.0);
-                machineShakeIntensity *= 0.95;
+                machineShakeX = lerp(machineShakeX, 0, deltaTime * 10.0); // Faster lerp
+                machineShakeY = lerp(machineShakeY, 0, deltaTime * 10.0); // Faster lerp
+                machineShakeIntensity *= 0.9; // Faster decay
             }
 
-            // Portal effect
-            if (crashTimer > 120 && !showPortal) {
+            // Portal effect - FASTER PORTAL
+            if (crashTimer > 10 && !showPortal) { // Reduced from 120
                 showPortal = true;
                 portalSize = 0;
             }
 
             if (showPortal) {
-                portalSize += deltaTime * 80.0;
-                portalRotation += deltaTime * 2.0;
+                portalSize += deltaTime * 200.0; // Increased from 80.0
+                portalRotation += deltaTime * 5.0; // Increased rotation speed
                 createPortalParticles();
             }
         } catch (Exception e) {
@@ -466,22 +464,22 @@ class BeforebornTaobin extends JPanel implements ActionListener {
 
     private void createPortalParticles() {
         try {
-            // Create portal particles with limit
-            if (portalSize > 50 && random.nextDouble() < 0.3 * deltaTime * 60.0
+            // Create portal particles with limit - MORE FREQUENT
+            if (portalSize > 20 && random.nextDouble() < 0.8 * deltaTime * 60.0 // Increased from 0.3
                     && portalParticles.size() < MAX_PARTICLES) {
                 PortalParticle particle = new PortalParticle();
                 double angle = random.nextDouble() * 2 * Math.PI;
                 double distance = random.nextDouble() * portalSize * 0.8;
                 particle.x = vendingMachineX + 40 + distance * Math.cos(angle);
                 particle.y = vendingMachineY + 75 + distance * Math.sin(angle);
-                particle.vx = -Math.cos(angle) * (2 + random.nextDouble() * 3);
-                particle.vy = -Math.sin(angle) * (2 + random.nextDouble() * 3);
+                particle.vx = -Math.cos(angle) * (5 + random.nextDouble() * 8); // Increased velocity
+                particle.vy = -Math.sin(angle) * (5 + random.nextDouble() * 8); // Increased velocity
                 particle.color = new Color(
                         Math.min(255, Math.max(0, 80 + random.nextInt(120))),
                         Math.min(255, Math.max(0, 30 + random.nextInt(170))),
                         Math.min(255, Math.max(0, 180 + random.nextInt(75))));
                 particle.alpha = 1.0;
-                particle.life = 1.0 + random.nextDouble() * 2.0;
+                particle.life = 0.5 + random.nextDouble() * 1.0; // Reduced life
                 portalParticles.add(particle);
             }
         } catch (Exception e) {
@@ -491,43 +489,41 @@ class BeforebornTaobin extends JPanel implements ActionListener {
 
     private void updateParticles() {
         try {
-            // Update crash particles safely
+            // Update crash particles safely - FASTER DECAY
             crashParticles.removeIf(p -> p.life <= 0);
             for (CrashParticle particle : new ArrayList<>(crashParticles)) {
                 if (particle != null) {
                     particle.x += particle.vx * deltaTime * 60.0;
                     particle.y += particle.vy * deltaTime * 60.0;
-                    particle.vy += 400.0 * deltaTime; // Gravity
-                    particle.vx *= Math.pow(0.98, deltaTime * 60.0); // Air resistance
-                    particle.life -= deltaTime * 0.8;
+                    particle.vy += 800.0 * deltaTime; // Increased gravity
+                    particle.vx *= Math.pow(0.95, deltaTime * 60.0); // Increased air resistance
+                    particle.life -= deltaTime * 2.0; // Faster decay
                     particle.rotation += particle.rotationSpeed * deltaTime;
                 }
             }
 
-            // Update portal particles safely
+            // Update portal particles safely - FASTER DECAY
             portalParticles.removeIf(p -> p.alpha <= 0);
             for (PortalParticle particle : new ArrayList<>(portalParticles)) {
                 if (particle != null) {
                     particle.x += particle.vx * deltaTime * 60.0;
                     particle.y += particle.vy * deltaTime * 60.0;
-                    particle.alpha -= deltaTime * 0.8;
-                    particle.rotation += deltaTime * 2.0;
+                    particle.alpha -= deltaTime * 2.0; // Faster decay
+                    particle.rotation += deltaTime * 4.0; // Faster rotation
 
-                    // Spiral motion towards center
+                    // Spiral motion towards center - STRONGER ATTRACTION
                     double centerX = vendingMachineX + 40;
                     double centerY = vendingMachineY + 75;
                     double dx = centerX - particle.x;
                     double dy = centerY - particle.y;
-                    particle.vx += dx * deltaTime * 2.0;
-                    particle.vy += dy * deltaTime * 2.0;
+                    particle.vx += dx * deltaTime * 5.0; // Increased attraction
+                    particle.vy += dy * deltaTime * 5.0; // Increased attraction
                 }
             }
         } catch (Exception e) {
             System.err.println("Error updating particles: " + e.getMessage());
         }
     }
-
-    // ... (keeping all the drawing methods the same as original)
 
     private void startFlashTransition() {
         if (!isFlashing) {
@@ -542,13 +538,14 @@ class BeforebornTaobin extends JPanel implements ActionListener {
             return;
 
         try {
-            if (flashTimer < 30) {
-                double progress = Math.max(0, Math.min(1, flashTimer / 30.0));
+            // MUCH FASTER FLASH TRANSITION
+            if (flashTimer < 10) { // Reduced from 30
+                double progress = Math.max(0, Math.min(1, flashTimer / 10.0));
                 flashIntensity = easeInOutQuad(progress) * 255;
-            } else if (flashTimer < 60) {
+            } else if (flashTimer < 15) { // Reduced from 60
                 flashIntensity = 255;
-            } else if (flashTimer < 90) {
-                double progress = Math.max(0, Math.min(1, (90 - flashTimer) / 30.0));
+            } else if (flashTimer < 25) { // Reduced from 90
+                double progress = Math.max(0, Math.min(1, (25 - flashTimer) / 10.0));
                 flashIntensity = easeInOutQuad(progress) * 255;
             } else {
                 isFlashing = false;
@@ -566,22 +563,20 @@ class BeforebornTaobin extends JPanel implements ActionListener {
         }
     }
 
-    // ... (adding all other drawing methods from original)
-
     public void drawAnimatedBackground(Graphics2D g2d) {
         if (g2d == null)
             return;
 
         try {
-            // Smooth time-based animation
-            time += deltaTime * 2.0;
-            rayAngle += deltaTime * 45.0; // Degrees per second
-            sunPulse = Math.sin(time * 1.5) * 0.3 + 1.0;
-            sunBobOffset = Math.sin(time * 0.8) * 8.0;
+            // Smooth time-based animation - FASTER ANIMATION
+            time += deltaTime * 8.0; // Increased from 2.0
+            rayAngle += deltaTime * 180.0; // Increased from 45.0
+            sunPulse = Math.sin(time * 3.0) * 0.3 + 1.0; // Faster pulse
+            sunBobOffset = Math.sin(time * 2.0) * 12.0; // Increased bob
 
-            // Smooth sun movement with boundary bouncing
-            sunX += sunSpeedX * deltaTime * 30.0;
-            sunY += sunSpeedY * deltaTime * 30.0 + sunBobOffset * deltaTime * 0.5;
+            // Smooth sun movement with boundary bouncing - FASTER MOVEMENT
+            sunX += sunSpeedX * deltaTime * 60.0; // Increased multiplier
+            sunY += sunSpeedY * deltaTime * 60.0 + sunBobOffset * deltaTime * 1.0;
 
             if (sunX > 550 || sunX < 50) {
                 sunSpeedX = -sunSpeedX;
@@ -606,14 +601,15 @@ class BeforebornTaobin extends JPanel implements ActionListener {
     }
 
     private void updateClouds() {
-        cloud1X += cloud1Speed * deltaTime * 30.0;
-        cloud1Bob = Math.sin(time * 0.6 + 0.0) * 4.0;
+        // FASTER CLOUD MOVEMENT
+        cloud1X += cloud1Speed * deltaTime * 60.0; // Increased multiplier
+        cloud1Bob = Math.sin(time * 1.2 + 0.0) * 6.0; // Faster bob
 
-        cloud2X += cloud2Speed * deltaTime * 30.0;
-        cloud2Bob = Math.sin(time * 0.8 + 2.0) * 3.5;
+        cloud2X += cloud2Speed * deltaTime * 60.0; // Increased multiplier
+        cloud2Bob = Math.sin(time * 1.6 + 2.0) * 5.5; // Faster bob
 
-        cloud3X += cloud3Speed * deltaTime * 30.0;
-        cloud3Bob = Math.sin(time * 0.7 + 4.0) * 5.0;
+        cloud3X += cloud3Speed * deltaTime * 60.0; // Increased multiplier
+        cloud3Bob = Math.sin(time * 1.4 + 4.0) * 7.0; // Faster bob
 
         // Reset cloud positions smoothly
         if (cloud1X > 650) {
@@ -635,7 +631,7 @@ class BeforebornTaobin extends JPanel implements ActionListener {
             return;
 
         try {
-            double bobY = y + Math.sin(animTime * 0.5 + x * 0.01) * 2 * scale;
+            double bobY = y + Math.sin(animTime * 1.0 + x * 0.01) * 3 * scale; // Faster bob
 
             // Cloud shadow
             g2d.setColor(new Color(180, 180, 180, 80));
@@ -671,10 +667,10 @@ class BeforebornTaobin extends JPanel implements ActionListener {
             return;
 
         try {
-            // Sun rays
+            // Sun rays - FASTER ANIMATION
             int rayCount = 24;
             double baseRayLength = radius + 20;
-            double pulseEffect = 1.0 + 0.4 * Math.sin(time * 3.0);
+            double pulseEffect = 1.0 + 0.6 * Math.sin(time * 6.0); // Faster pulse
             double rayLength = baseRayLength * pulseEffect;
 
             g2d.setStroke(new BasicStroke(2f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
@@ -688,7 +684,7 @@ class BeforebornTaobin extends JPanel implements ActionListener {
                     int x2 = (int) (centerX + Math.cos(angle) * rayLength);
                     int y2 = (int) (centerY + Math.sin(angle) * rayLength);
 
-                    double intensity = 0.7 + 0.3 * Math.sin(time * 2.0 + i * 0.5);
+                    double intensity = 0.7 + 0.3 * Math.sin(time * 4.0 + i * 0.5); // Faster intensity change
                     Color rayColor = new Color(255,
                             Math.min(255, Math.max(0, (int) (215 * intensity))),
                             Math.min(255, Math.max(0, (int) (50 * intensity))),
@@ -747,9 +743,9 @@ class BeforebornTaobin extends JPanel implements ActionListener {
             g2d.setPaint(roadGradient);
             g2d.fillRect(0, roadY, getWidth(), 200);
 
-            // Road markings
+            // Road markings - FASTER MOVEMENT
             g2d.setColor(new Color(255, 255, 255, 200));
-            double dashOffset = crashed ? 0 : (sceneTimer * deltaTime * 100.0) % 30;
+            double dashOffset = crashed ? 0 : (sceneTimer * deltaTime * 300.0) % 30; // Increased speed
             g2d.setStroke(new BasicStroke(4, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND, 0, new float[] { 20, 10 },
                     (float) dashOffset));
             g2d.drawLine(0, roadY + 100, getWidth(), roadY + 100);
@@ -925,7 +921,7 @@ class BeforebornTaobin extends JPanel implements ActionListener {
                         try {
                             double angle = portalRotation * (1.0 + layer * 0.2) + (j * 2 * Math.PI / spikeCount);
                             double innerRadius = ringRadius - 12 - layer * 2;
-                            double outerRadius = ringRadius + (Math.sin(time * 2 + j * 0.5) * 8);
+                            double outerRadius = ringRadius + (Math.sin(time * 4 + j * 0.5) * 12); // Faster animation
 
                             int x1 = (int) (portalCenterX + innerRadius * Math.cos(angle));
                             int y1 = (int) (portalCenterY + innerRadius * Math.sin(angle));
@@ -942,7 +938,7 @@ class BeforebornTaobin extends JPanel implements ActionListener {
             }
 
             // Portal center
-            if (portalSize > 40) {
+            if (portalSize > 20) { // Reduced from 40
                 double coreRadius = portalSize / 3.5;
                 g2d.setColor(new Color(255, 255, 255, 220));
                 g2d.fillOval((int) (portalCenterX - coreRadius), (int) (portalCenterY - coreRadius),
@@ -1007,7 +1003,7 @@ class BeforebornTaobin extends JPanel implements ActionListener {
         SwingUtilities.invokeLater(() -> {
             try {
                 frame = new JFrame();
-                frame.setTitle("立方体の自動販売機 - Lofi Cubic Vending Machine");
+                frame.setTitle("立方体の自動販売機 - Fast Lofi Cubic Vending Machine");
                 frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
                 frame.setSize(600, 600);
 
@@ -1017,13 +1013,13 @@ class BeforebornTaobin extends JPanel implements ActionListener {
                 frame.setVisible(true);
                 frame.setResizable(false);
 
-                // Add a subtle window title animation
-                Timer titleTimer = new Timer(2000, new ActionListener() {
+                // Add a subtle window title animation - FASTER
+                Timer titleTimer = new Timer(1000, new ActionListener() { // Reduced from 2000
                     private String[] titles = {
-                            "立方体の自動販売機 - Lofi Cubic Vending Machine",
-                            "TAO BIN - Dreamy Beverage Dispenser ✨",
-                            "Lofi Vending Experience 🌸",
-                            "Cubic Dreams & Refreshments 🎵"
+                            "立方体の自動販売機 - Fast Lofi Cubic Vending Machine",
+                            "TAO BIN - Speed Beverage Dispenser ⚡",
+                            "Fast Lofi Vending Experience 🌸",
+                            "Quick Cubic Dreams & Refreshments 🎵"
                     };
                     private int titleIndex = 0;
 

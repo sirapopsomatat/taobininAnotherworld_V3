@@ -244,11 +244,6 @@ public class SideView extends JPanel implements ActionListener {
             Graphics2D g2d = (Graphics2D) g;
             g2d.drawImage(backBuffer, 0, 0, null);
 
-            // ลบส่วนนี้ออก - ไม่วาด completion message อีกต่อไป
-            // if (animationComplete) {
-            // drawCompletionMessage(g2d);
-            // }
-
         } catch (Exception e) {
             System.err.println("Error in paintComponent: " + e.getMessage());
         }
@@ -310,10 +305,8 @@ public class SideView extends JPanel implements ActionListener {
         g2d.drawString("Side View Fall", WINDOW_WIDTH - 240, 55);
 
         g2d.setFont(new Font("Arial", Font.PLAIN, 12));
-        g2d.drawString("~ single drop ~", WINDOW_WIDTH - 235, 75);
+        g2d.drawString("~ 0.5s quick drop ~", WINDOW_WIDTH - 235, 75);
     }
-
-    // ลบ method drawCompletionMessage ออกทั้งหมด
 
     @Override
     public void actionPerformed(ActionEvent e) {
@@ -338,8 +331,8 @@ public class SideView extends JPanel implements ActionListener {
         if (vendingMachine != null && !animationComplete) {
             vendingMachine.update();
 
-            // Check if animation is complete
-            if (vendingMachine.onGround && vendingMachine.timeOnGround > 0) { // 0 seconds
+            // Check if animation is complete (immediately after landing)
+            if (vendingMachine.onGround) {
                 animationComplete = true;
                 completionTimer = 0;
                 System.out.println("SideView animation complete, starting transition timer...");
@@ -349,7 +342,7 @@ public class SideView extends JPanel implements ActionListener {
         // Handle completion timer - Auto transition to next scene
         if (animationComplete) {
             completionTimer++;
-            if (completionTimer > 0) { // 0 seconds after completion
+            if (completionTimer > 0) { // Immediate transition
                 transitionToNextScene();
             }
         }
@@ -593,13 +586,13 @@ public class SideView extends JPanel implements ActionListener {
         }
     }
 
-    // VendingMachine class
+    // VendingMachine class - Modified for 0.5 second fall
     class VendingMachine {
         float x, y;
         float fallDistance = 0; // 0 = far away (small), 1 = on ground (full size)
         float rotation = 0;
         float rotationSpeed;
-        float velocityY = 1.0f;
+        float velocityY = 5.0f; // Increased initial velocity for faster fall
         boolean onGround = false;
         int timeOnGround = 0;
         private static final float MAX_FALL_DISTANCE = WINDOW_HEIGHT + 100;
@@ -609,7 +602,7 @@ public class SideView extends JPanel implements ActionListener {
         public VendingMachine(float x, float y) {
             this.x = x;
             this.y = y;
-            this.rotationSpeed = (random.nextFloat() - 0.5f) * 0.03f;
+            this.rotationSpeed = (random.nextFloat() - 0.5f) * 0.08f; // Faster rotation
 
             // Create portal particles at spawn
             for (int i = 0; i < 8; i++) {
@@ -623,14 +616,8 @@ public class SideView extends JPanel implements ActionListener {
                 fallDistance = Math.min(1.0f, (y + 100) / MAX_FALL_DISTANCE);
                 rotation += rotationSpeed;
 
-                // Accelerate as falling
-                velocityY += 0.04f;
-
-                // Slow down as approaching ground
-                if (fallDistance > 0.8f) {
-                    velocityY *= 0.96f;
-                    rotationSpeed *= 0.96f;
-                }
+                // Much faster acceleration to reach ground in ~0.5 seconds (30 frames at 60fps)
+                velocityY += 0.8f;
 
                 // Check if reached ground
                 if (y >= WINDOW_HEIGHT - 180) {
@@ -650,9 +637,9 @@ public class SideView extends JPanel implements ActionListener {
                 }
             } else {
                 timeOnGround++;
-                // Gentle settling animation
-                if (timeOnGround < 45) {
-                    y += Math.sin(timeOnGround * 0.2f) * 0.3f;
+                // Minimal settling animation
+                if (timeOnGround < 10) {
+                    y += Math.sin(timeOnGround * 0.5f) * 0.5f;
                 }
             }
         }
